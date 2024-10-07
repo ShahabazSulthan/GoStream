@@ -1,0 +1,42 @@
+syntax= "proto3";
+
+package pb;
+
+option go_package = "./pkg/pb";
+
+service VideoService {
+    rpc UploadVideo (stream UploadVideoRequest) returns (UploadVideoResponse){}
+    rpc StreamVideo (StreamVideoRequest) returns (stream StreamVideoResponse){}
+    rpc FindAllVideo (FindAllRequest) returns (FindAllResponse){}
+}
+
+message UploadVideoRequest {
+    string filename = 1;
+  bytes data = 2;
+}
+
+message UploadVideoResponse{
+    int32 status=1;
+    string message=2;
+    string videoId=3;
+}
+
+message StreamVideoRequest {
+    string videoid=1;
+    string playlist=2;
+}
+
+message StreamVideoResponse {
+    bytes video_chunk = 1;
+}
+
+message FindAllRequest {}
+
+message VideoID {
+    string VideoId=1;
+}
+
+message FindAllResponse {
+    int32 status=1;
+    repeated VideoID videos=2;
+}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoStream - Video Streaming</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Poppins', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3.5rem;
+            margin: 0;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #2c1580, #43403f);
+            color: rgb(255, 255, 255);
+            border-bottom: 5px solid #ff6347;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #videoContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            justify-items: center;
+            padding: 0 20px 50px;
+            background-color: #181818;
+            border-radius: 15px;
+            max-width: 1400px;
+            margin: 40px auto;
+        }
+
+        video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 15px;
+            border: 2px solid #ffcc00;
+            box-shadow: 0 8px 30px rgba(255, 204, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        video:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(255, 204, 0, 0.7);
+        }
+
+        a#uploadButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff8a00, #ff3c00);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        }
+
+        a#uploadButton:hover {
+            background: linear-gradient(135deg, #ff3c00, #ff6347);
+            box-shadow: 0 8px 30px rgba(255, 99, 71, 0.7);
+        }
+
+        footer {
+            padding: 20px 0;
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+            font-size: 1rem;
+            border-top: 3px solid #ff6347;
+            margin-top: 50px;
+
+        }
+
+        /* Add glow effect to links */
+        a {
+            text-decoration: none;
+            color: #ffcc00;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #ff9900;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            a#uploadButton {
+                padding: 12px 30px;
+            }
+
+            video {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>GoStream - Video Streaming</h1>
+
+    <a href="/upload" id="uploadButton">Upload Video</a>
+
+    <div id="videoContainer">
+        <!-- Videos will be dynamically added here -->
+    </div>
+
+    <footer>
+        © 2024 GoStream | All rights reserved
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        window.addEventListener('load', function() {
+            fetch('/video/all')
+            .then(async response => {
+                let res = await response.json();
+                console.log(res);
+
+                res.Video.forEach(video => { 
+                    console.log(video);
+                    const videoElement = document.createElement('video');
+                    videoElement.controls = true;
+                    videoElement.autoplay = false;
+
+                    videoElement.addEventListener('mouseover', function() {
+                        this.play();
+                    });
+
+                    videoElement.addEventListener('mouseout', function() {
+                        this.pause();
+                    });
+
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource('/stream/' + video.VideoId + '/playlist.m3u8');
+                        hls.attachMedia(videoElement);
+                    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                        videoElement.src = '/stream/' + video.VideoId + '/playlist.m3u8';
+                    } else {
+                        console.error('HLS is not supported on this browser.');
+                    }
+
+                    document.getElementById('videoContainer').appendChild(videoElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching video data:', error);
+            });
+        });
+    </script>
+</body>
+</html>
